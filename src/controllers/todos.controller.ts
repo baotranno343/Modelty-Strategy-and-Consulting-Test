@@ -9,7 +9,6 @@ import { Todos } from "../entity/todos.entity";
 import asyncHandler from "express-async-handler";
 export class TodoController {
   private todoService: TodoService;
-
   constructor() {
     this.todoService = new TodoService();
   }
@@ -41,23 +40,19 @@ export class TodoController {
       res.status(400).json({ error: result.error.format() });
       return;
     }
-
     const parsedId = parseInt(id);
     if (isNaN(parsedId)) {
       res.status(404).json({ message: "Please input id" });
       return;
     }
-
     const updatedTodo: Todos | null = await this.todoService.updateTodo(
       parsedId,
       result.data
     );
-
     if (!updatedTodo) {
       res.status(404).json({ message: "To-do not found" });
       return;
     }
-
     res.status(200).json({
       message: "Todo updated successfully",
       data: TodoResponseDTO.fromEntity(updatedTodo),
@@ -71,13 +66,11 @@ export class TodoController {
       res.status(404).json({ message: "Please input id" });
       return;
     }
-
     const isDeleted = await this.todoService.deleteTodo(parsedId);
     if (!isDeleted) {
       res.status(404).json({ message: "To-do not found" });
       return;
     }
-
     res.status(200).json({ message: "Todo deleted successfully" });
   });
 }
