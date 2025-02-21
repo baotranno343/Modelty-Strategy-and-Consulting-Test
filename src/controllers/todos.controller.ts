@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import { TodoService } from "../services/todos.service";
-import {
-  CreateTodoSchema,
-  TodoResponseDTO,
-  UpdateTodoSchema,
-} from "../services/dtos/todo.dto";
+import { TodoResponseDTO } from "../services/todo/dtos/todo.dto";
 import { Todos } from "../entity/todos.entity";
 import asyncHandler from "express-async-handler";
+import {
+  CreateTodoSchema,
+  UpdateTodoSchema,
+} from "../services/todo/validation/todo.validation";
 export class TodoController {
   private todoService: TodoService;
   constructor() {
@@ -18,13 +18,13 @@ export class TodoController {
   });
 
   createTodo = asyncHandler(async (req: Request, res: Response) => {
-    const result = CreateTodoSchema.safeParse(req.body);
-    if (!result.success) {
-      res.status(400).json({ error: result.error.format() });
+    const validate = CreateTodoSchema.safeParse(req.body);
+    if (!validate.success) {
+      res.status(400).json({ error: validate.error.format() });
       return;
     }
     const newTodo: Todos | null = await this.todoService.createTodo(
-      result.data
+      validate.data
     );
     if (!newTodo) {
       res.status(404).json({ message: "Create todo failed" });

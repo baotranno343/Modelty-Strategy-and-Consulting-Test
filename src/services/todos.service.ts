@@ -1,7 +1,10 @@
-import { Repository } from "typeorm";
+import { DeleteResult, Repository } from "typeorm";
 import { dataSource } from "../data-source";
 import { Todos } from "../entity/todos.entity";
-import { CreateTodoDTO, UpdateTodoDTO } from "./dtos/todo.dto";
+import {
+  CreateTodoDTO,
+  UpdateTodoDTO,
+} from "./todo/validation/todo.validation";
 
 export class TodoService {
   private todosRepository: Repository<Todos>;
@@ -13,7 +16,7 @@ export class TodoService {
   };
 
   createTodo = async (data: CreateTodoDTO): Promise<Todos | null> => {
-    const newTodo = this.todosRepository.create(data);
+    const newTodo: Todos = this.todosRepository.create(data);
     return await this.todosRepository.save(newTodo);
   };
 
@@ -21,14 +24,14 @@ export class TodoService {
     id: number,
     data: UpdateTodoDTO
   ): Promise<Todos | null> => {
-    const todo = await this.todosRepository.findOneBy({ id });
+    const todo: Todos | null = await this.todosRepository.findOneBy({ id });
     if (!todo) return null;
     Object.assign(todo, data);
     return await this.todosRepository.save(todo);
   };
 
   deleteTodo = async (id: number): Promise<boolean> => {
-    const deleteResult = await this.todosRepository.delete(id);
+    const deleteResult: DeleteResult = await this.todosRepository.delete(id);
     return deleteResult.affected === 1;
   };
 }
