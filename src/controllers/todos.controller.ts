@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { TodoService } from "../services/todos.service";
+import { TodoService } from "../services/todo/todos.service";
 import { TodoResponseDTO } from "../services/todo/dtos/todo.dto";
 import { Todos } from "../entity/todos.entity";
 import asyncHandler from "express-async-handler";

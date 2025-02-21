@@ -1,10 +1,7 @@
 import { DeleteResult, Repository } from "typeorm";
-import { dataSource } from "../data-source";
-import { Todos } from "../entity/todos.entity";
-import {
-  CreateTodoDTO,
-  UpdateTodoDTO,
-} from "./todo/validation/todo.validation";
+import { dataSource } from "../../data-source";
+import { Todos } from "../../entity/todos.entity";
+import { CreateTodoDTO, UpdateTodoDTO } from "./validation/todo.validation";
 
 export class TodoService {
   private todosRepository: Repository<Todos>;
