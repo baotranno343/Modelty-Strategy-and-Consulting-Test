@@ -50,7 +50,7 @@ describe("Todo API Endpoints", () => {
   test("Should get all Todos", async () => {
     const response = await request(app).get("/");
     expect(response.status).toBe(200);
-    expect(Array.isArray(response.body)).toBe(true);
+    expect(Array.isArray(response.body.data)).toBe(true);
   });
 
   test("Should update an existing Todo", async () => {
@@ -73,9 +73,10 @@ describe("Todo API Endpoints", () => {
       startDate: null,
       endDate: "2000-03-23",
     });
-    console.log(response.body);
+
     expect(response.status).toBe(400);
-    expect(response.body.error.startDate._errors).toHaveLength(1);
+    console.log(response.body);
+    expect(response.body.message.startDate._errors).toHaveLength(1);
   });
   test("Should delete a Todo", async () => {
     const response = await request(app).delete(`/1`);
@@ -88,6 +89,6 @@ describe("Todo API Endpoints", () => {
   });
   test("Should return 404 when deleting a string id Todo", async () => {
     const response = await request(app).delete(`/asd`);
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(400);
   });
 });

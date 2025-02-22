@@ -2,75 +2,98 @@ import { Request, Response } from "express";
 import { TodoService } from "../services/todo/todos.service";
 import { TodoResponseDTO } from "../services/todo/dtos/todo.dto";
 import { Todos } from "../entity/todos.entity";
-import asyncHandler from "express-async-handler";
 import {
   CreateTodoSchema,
   UpdateTodoSchema,
 } from "../services/todo/validation/todo.validation";
+import { successResponse, errorResponse } from "../helpers/response.helper";
+
 export class TodoController {
   private todoService: TodoService;
   constructor() {
     this.todoService = new TodoService();
   }
-  getAllTodos = asyncHandler(async (req: Request, res: Response) => {
-    const list: Todos[] = await this.todoService.getAllTodos();
-    res.json(list.map(TodoResponseDTO.fromEntity));
-  });
 
-  createTodo = asyncHandler(async (req: Request, res: Response) => {
-    const validate = CreateTodoSchema.safeParse(req.body);
-    if (!validate.success) {
-      res.status(400).json({ error: validate.error.format() });
+  getAllTodos = async (req: Request, res: Response) => {
+    try {
+      const list: Todos[] = await this.todoService.getAllTodos();
+      successResponse<TodoResponseDTO[]>(
+        res,
+        "Fetched todos successfully",
+        list.map(TodoResponseDTO.fromEntity)
+      );
+      return;
+    } catch (error) {
+      errorResponse(res, "Internal server error", 500);
       return;
     }
-    const newTodo: Todos | null = await this.todoService.createTodo(
-      validate.data
-    );
-    if (!newTodo) {
-      res.status(404).json({ message: "Create todo failed" });
-      return;
-    }
-    res.status(201).json(TodoResponseDTO.fromEntity(newTodo));
-  });
+  };
 
-  updateTodo = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const result = UpdateTodoSchema.safeParse(req.body);
-    if (!result.success) {
-      res.status(400).json({ error: result.error.format() });
-      return;
+  createTodo = async (req: Request, res: Response) => {
+    try {
+      const validate = CreateTodoSchema.safeParse(req.body);
+      if (!validate.success) {
+        return errorResponse(res, validate.error.format(), 400);
+      }
+      const newTodo: Todos | null = await this.todoService.createTodo(
+        validate.data
+      );
+      if (!newTodo) {
+        return errorResponse(res, "Create todo failed", 500);
+      }
+      return successResponse<TodoResponseDTO>(
+        res,
+        "Todo created successfully",
+        TodoResponseDTO.fromEntity(newTodo),
+        201
+      );
+    } catch (error) {
+      return errorResponse(res, "Internal server error", 500);
     }
-    const parsedId = parseInt(id);
-    if (isNaN(parsedId)) {
-      res.status(404).json({ message: "Please input id" });
-      return;
-    }
-    const updatedTodo: Todos | null = await this.todoService.updateTodo(
-      parsedId,
-      result.data
-    );
-    if (!updatedTodo) {
-      res.status(404).json({ message: "To-do not found" });
-      return;
-    }
-    res.status(200).json({
-      message: "Todo updated successfully",
-      data: TodoResponseDTO.fromEntity(updatedTodo),
-    });
-  });
+  };
 
-  deleteTodo = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const parsedId = parseInt(id);
-    if (isNaN(parsedId)) {
-      res.status(404).json({ message: "Please input id" });
-      return;
+  updateTodo = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const result = UpdateTodoSchema.safeParse(req.body);
+      if (!result.success) {
+        return errorResponse(res, result.error.format(), 400);
+      }
+      const parsedId = parseInt(id);
+      if (isNaN(parsedId)) {
+        return errorResponse(res, "Invalid ID format", 400);
+      }
+      const updatedTodo: Todos | null = await this.todoService.updateTodo(
+        parsedId,
+        result.data
+      );
+      if (!updatedTodo) {
+        return errorResponse(res, "To-do not found", 404);
+      }
+      return successResponse<TodoResponseDTO>(
+        res,
+        "Todo updated successfully",
+        TodoResponseDTO.fromEntity(updatedTodo)
+      );
+    } catch (error) {
+      return errorResponse(res, "Internal server error", 500);
     }
-    const isDeleted = await this.todoService.deleteTodo(parsedId);
-    if (!isDeleted) {
-      res.status(404).json({ message: "To-do not found" });
-      return;
+  };
+
+  deleteTodo = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const parsedId = parseInt(id);
+      if (isNaN(parsedId)) {
+        return errorResponse(res, "Invalid ID format", 400);
+      }
+      const isDeleted = await this.todoService.deleteTodo(parsedId);
+      if (!isDeleted) {
+        return errorResponse(res, "To-do not found", 404);
+      }
+      return successResponse(res, "Todo deleted successfully");
+    } catch (error) {
+      return errorResponse(res, "Internal server error", 500);
     }
-    res.status(200).json({ message: "Todo deleted successfully" });
-  });
+  };
 }
